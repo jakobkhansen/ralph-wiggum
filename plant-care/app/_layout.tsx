@@ -37,6 +37,14 @@ export default function RootLayout() {
         name="plant/[id]"
         options={{ title: 'Plant Detail' }}
       />
+      <Stack.Screen
+        name="photo-viewer"
+        options={{
+          title: 'Photo',
+          headerStyle: { backgroundColor: '#000' },
+          headerTintColor: '#fff',
+        }}
+      />
     </Stack>
   );
 }

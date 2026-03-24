@@ -7,16 +7,19 @@ import {
   ScrollView,
   ActivityIndicator,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
-import { useLocalSearchParams, Stack } from 'expo-router';
+import { useLocalSearchParams, Stack, useRouter } from 'expo-router';
+import * as ImagePicker from 'expo-image-picker';
 import { Colors } from '../../constants/colors';
 import { getPlantById, updatePlant } from '../../storage/plants';
-import { Plant } from '../../types/plant';
+import { Plant, PlantPhoto } from '../../types/plant';
 import { daysUntilNext } from '../../utils/schedule';
 import { scheduleAllNotifications } from '../../utils/notifications';
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const router = useRouter();
   const [plant, setPlant] = useState<Plant | null>(null);
   const [loading, setLoading] = useState(true);
 
@@ -45,6 +48,44 @@ export default function PlantDetailScreen() {
     await scheduleAllNotifications();
   }
 
+  async function handleAddPhoto() {
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: true,
+      quality: 0.8,
+    });
+
+    if (result.canceled || !result.assets[0] || !plant) return;
+
+    const newPhoto: PlantPhoto = {
+      id: Date.now().toString(),
+      uri: result.assets[0].uri,
+      takenAt: new Date().toISOString(),
+    };
+
+    const photos = [...(plant.photos || []), newPhoto];
+    const updated = { ...plant, photos };
+    await updatePlant(updated);
+    setPlant(updated);
+  }
+
+  function handleDeletePhoto(photoId: string) {
+    if (!plant) return;
+    Alert.alert('Delete Photo', 'Are you sure you want to delete this photo?', [
+      { text: 'Cancel', style: 'cancel' },
+      {
+        text: 'Delete',
+        style: 'destructive',
+        onPress: async () => {
+          const photos = (plant.photos || []).filter((p) => p.id !== photoId);
+          const updated = { ...plant, photos };
+          await updatePlant(updated);
+          setPlant(updated);
+        },
+      },
+    ]);
+  }
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -63,6 +104,9 @@ export default function PlantDetailScreen() {
 
   const waterDays = daysUntilNext(plant.lastWatered, plant.wateringFrequencyDays);
   const fertDays = daysUntilNext(plant.lastFertilized, plant.fertilizingFrequencyDays);
+  const photos = [...(plant.photos || [])].sort(
+    (a, b) => new Date(a.takenAt).getTime() - new Date(b.takenAt).getTime()
+  );
 
   function formatCountdown(days: number | null): string {
     if (days === null) return 'Not set';
@@ -155,6 +199,45 @@ export default function PlantDetailScreen() {
             </TouchableOpacity>
           </View>
         )}
+
+        {/* Photo Journal */}
+        <View style={styles.journalSection}>
+          <View style={styles.journalHeader}>
+            <Text style={styles.journalTitle}>Photo Journal</Text>
+            <TouchableOpacity style={styles.addPhotoButton} onPress={handleAddPhoto}>
+              <Text style={styles.addPhotoButtonText}>+ Add Photo</Text>
+            </TouchableOpacity>
+          </View>
+
+          {photos.length === 0 ? (
+            <Text style={styles.journalEmpty}>
+              No photos yet. Add your first photo to track growth!
+            </Text>
+          ) : (
+            photos.map((photo) => (
+              <View key={photo.id} style={styles.journalEntry}>
+                <TouchableOpacity
+                  onPress={() =>
+                    router.push({
+                      pathname: '/photo-viewer',
+                      params: { uri: photo.uri, date: photo.takenAt },
+                    })
+                  }
+                >
+                  <Image source={{ uri: photo.uri }} style={styles.journalPhoto} />
+                </TouchableOpacity>
+                <View style={styles.journalEntryFooter}>
+                  <Text style={styles.journalDate}>
+                    {new Date(photo.takenAt).toLocaleDateString()}
+                  </Text>
+                  <TouchableOpacity onPress={() => handleDeletePhoto(photo.id)}>
+                    <Text style={styles.deleteText}>Delete</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ))
+          )}
+        </View>
       </ScrollView>
     </>
   );
@@ -269,6 +352,64 @@ const styles = StyleSheet.create({
   actionButtonText: {
     color: Colors.white,
     fontSize: 16,
+    fontWeight: '600',
+  },
+  journalSection: {
+    width: '100%',
+    marginTop: 24,
+  },
+  journalHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 16,
+  },
+  journalTitle: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.text,
+  },
+  addPhotoButton: {
+    backgroundColor: Colors.primary,
+    borderRadius: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+  },
+  addPhotoButtonText: {
+    color: Colors.white,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  journalEmpty: {
+    fontSize: 15,
+    color: Colors.textSecondary,
+    textAlign: 'center',
+    paddingVertical: 20,
+  },
+  journalEntry: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    overflow: 'hidden',
+    marginBottom: 14,
+  },
+  journalPhoto: {
+    width: '100%',
+    height: 250,
+  },
+  journalEntryFooter: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 12,
+  },
+  journalDate: {
+    fontSize: 14,
+    color: Colors.textSecondary,
+    fontWeight: '500',
+  },
+  deleteText: {
+    fontSize: 14,
+    color: '#E53935',
     fontWeight: '600',
   },
 });

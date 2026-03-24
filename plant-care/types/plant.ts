@@ -1,3 +1,9 @@
+export interface PlantPhoto {
+  id: string;
+  uri: string;
+  takenAt: string;
+}
+
 export interface Plant {
   id: string;
   name: string;
@@ -9,4 +15,5 @@ export interface Plant {
   fertilizingFrequencyDays: number | null;
   lastWatered: string | null;
   lastFertilized: string | null;
+  photos?: PlantPhoto[];
 }

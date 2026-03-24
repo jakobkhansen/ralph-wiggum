@@ -1,5 +1,7 @@
 # Spec 005: Photo Journal
 
+## Status: COMPLETE
+
 ## Summary
 
 Allow users to take periodic photos of their plants and view a timeline of growth.
@@ -19,10 +21,12 @@ Watching plants grow over time is satisfying and keeps users engaged with the ap
 
 ## Acceptance Criteria
 
-- [ ] User can add a photo to a plant from camera or gallery
-- [ ] Photos appear in chronological order on the plant detail screen
-- [ ] Each photo displays its date
-- [ ] Tapping a photo opens fullscreen view
-- [ ] Fullscreen view supports pinch-to-zoom
-- [ ] User can delete a photo from the timeline
-- [ ] Photos persist across app restarts
+- [x] User can add a photo to a plant from camera or gallery
+- [x] Photos appear in chronological order on the plant detail screen
+- [x] Each photo displays its date
+- [x] Tapping a photo opens fullscreen view
+- [x] Fullscreen view supports pinch-to-zoom
+- [x] User can delete a photo from the timeline
+- [x] Photos persist across app restarts
+
+<!-- NR_OF_TRIES: 1 -->
