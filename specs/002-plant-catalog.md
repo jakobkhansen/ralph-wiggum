@@ -1,5 +1,7 @@
 # Spec 002: Plant Catalog & Add Plant
 
+## Status: COMPLETE
+
 ## Summary
 
 Allow users to add plants to their collection with name, species, photo, and location. Display all plants on the home screen as a grid/list.
@@ -18,15 +20,17 @@ The core value of the app starts with being able to catalog your plants. Users n
 
 ## Acceptance Criteria
 
-- [ ] User can fill out the Add Plant form and save a new plant
-- [ ] Saved plants persist across app restarts (AsyncStorage)
-- [ ] Home screen shows all saved plants as cards with photo, name, species
-- [ ] Tapping a plant card opens the detail screen for that plant
-- [ ] Form validates that plant name is not empty before saving
-- [ ] Empty state shown on home screen when no plants exist
+- [x] User can fill out the Add Plant form and save a new plant
+- [x] Saved plants persist across app restarts (AsyncStorage)
+- [x] Home screen shows all saved plants as cards with photo, name, species
+- [x] Tapping a plant card opens the detail screen for that plant
+- [x] Form validates that plant name is not empty before saving
+- [x] Empty state shown on home screen when no plants exist
 
 ## Out of Scope
 
 - Watering schedules (next spec)
 - Plant species database/autocomplete
 - Cloud sync
+
+<!-- NR_OF_TRIES: 1 -->
