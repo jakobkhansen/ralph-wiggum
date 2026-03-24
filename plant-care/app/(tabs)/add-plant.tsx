@@ -23,6 +23,8 @@ export default function AddPlantScreen() {
   const [species, setSpecies] = useState('');
   const [location, setLocation] = useState('');
   const [photoUri, setPhotoUri] = useState<string | null>(null);
+  const [wateringDays, setWateringDays] = useState('');
+  const [fertilizingDays, setFertilizingDays] = useState('');
 
   async function pickImage() {
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -43,13 +45,21 @@ export default function AddPlantScreen() {
       return;
     }
 
+    const now = new Date().toISOString();
+    const waterFreq = wateringDays ? parseInt(wateringDays, 10) : null;
+    const fertFreq = fertilizingDays ? parseInt(fertilizingDays, 10) : null;
+
     const plant: Plant = {
       id: Date.now().toString(),
       name: name.trim(),
       species: species.trim(),
       location: location.trim(),
       photoUri,
-      createdAt: new Date().toISOString(),
+      createdAt: now,
+      wateringFrequencyDays: waterFreq && waterFreq > 0 ? waterFreq : null,
+      fertilizingFrequencyDays: fertFreq && fertFreq > 0 ? fertFreq : null,
+      lastWatered: waterFreq && waterFreq > 0 ? now : null,
+      lastFertilized: fertFreq && fertFreq > 0 ? now : null,
     };
 
     await savePlant(plant);
@@ -57,6 +67,8 @@ export default function AddPlantScreen() {
     setSpecies('');
     setLocation('');
     setPhotoUri(null);
+    setWateringDays('');
+    setFertilizingDays('');
     Alert.alert('Plant added!', `${plant.name} has been added to your collection.`);
     router.navigate('/(tabs)');
   }
@@ -102,6 +114,28 @@ export default function AddPlantScreen() {
           onChangeText={setLocation}
           placeholder="e.g. Living room"
           placeholderTextColor={Colors.textSecondary}
+        />
+
+        <Text style={styles.sectionHeader}>Care Schedule</Text>
+
+        <Text style={styles.label}>Water every (days)</Text>
+        <TextInput
+          style={styles.input}
+          value={wateringDays}
+          onChangeText={setWateringDays}
+          placeholder="e.g. 7"
+          placeholderTextColor={Colors.textSecondary}
+          keyboardType="number-pad"
+        />
+
+        <Text style={styles.label}>Fertilize every (days)</Text>
+        <TextInput
+          style={styles.input}
+          value={fertilizingDays}
+          onChangeText={setFertilizingDays}
+          placeholder="e.g. 30"
+          placeholderTextColor={Colors.textSecondary}
+          keyboardType="number-pad"
         />
 
         <TouchableOpacity style={styles.saveButton} onPress={handleSave}>
@@ -150,6 +184,13 @@ const styles = StyleSheet.create({
     color: Colors.text,
     marginBottom: 6,
     marginTop: 12,
+  },
+  sectionHeader: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginTop: 24,
+    marginBottom: 4,
   },
   input: {
     backgroundColor: Colors.card,

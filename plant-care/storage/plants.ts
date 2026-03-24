@@ -18,3 +18,12 @@ export async function getPlantById(id: string): Promise<Plant | undefined> {
   const plants = await getPlants();
   return plants.find((p) => p.id === id);
 }
+
+export async function updatePlant(updated: Plant): Promise<void> {
+  const plants = await getPlants();
+  const index = plants.findIndex((p) => p.id === updated.id);
+  if (index !== -1) {
+    plants[index] = updated;
+    await AsyncStorage.setItem(PLANTS_KEY, JSON.stringify(plants));
+  }
+}

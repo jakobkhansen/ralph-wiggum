@@ -11,6 +11,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { getPlants } from '../../storage/plants';
 import { Plant } from '../../types/plant';
+import { needsWater, needsFertilizer } from '../../utils/schedule';
 
 export default function MyPlantsScreen() {
   const router = useRouter();
@@ -21,6 +22,10 @@ export default function MyPlantsScreen() {
       getPlants().then(setPlants);
     }, [])
   );
+
+  const plantsNeedingWater = plants.filter(needsWater).length;
+  const plantsNeedingFertilizer = plants.filter(needsFertilizer).length;
+  const totalTasks = plantsNeedingWater + plantsNeedingFertilizer;
 
   if (plants.length === 0) {
     return (
@@ -40,29 +45,65 @@ export default function MyPlantsScreen() {
       keyExtractor={(item) => item.id}
       contentContainerStyle={styles.list}
       style={styles.container}
-      renderItem={({ item }) => (
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() => router.push(`/plant/${item.id}`)}
-        >
-          {item.photoUri ? (
-            <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} />
-          ) : (
-            <View style={styles.cardPhotoPlaceholder}>
-              <Text style={styles.cardPhotoPlaceholderText}>🌿</Text>
-            </View>
-          )}
-          <View style={styles.cardInfo}>
-            <Text style={styles.cardName}>{item.name}</Text>
-            {item.species ? (
-              <Text style={styles.cardSpecies}>{item.species}</Text>
-            ) : null}
-            {item.location ? (
-              <Text style={styles.cardLocation}>{item.location}</Text>
-            ) : null}
+      ListHeaderComponent={
+        totalTasks > 0 ? (
+          <View style={styles.tasksSummary}>
+            <Text style={styles.tasksSummaryTitle}>Today's Tasks</Text>
+            {plantsNeedingWater > 0 && (
+              <Text style={styles.tasksSummaryItem}>
+                💧 {plantsNeedingWater} plant{plantsNeedingWater !== 1 ? 's' : ''} need watering
+              </Text>
+            )}
+            {plantsNeedingFertilizer > 0 && (
+              <Text style={styles.tasksSummaryItem}>
+                🌿 {plantsNeedingFertilizer} plant{plantsNeedingFertilizer !== 1 ? 's' : ''} need fertilizing
+              </Text>
+            )}
           </View>
-        </TouchableOpacity>
-      )}
+        ) : null
+      }
+      renderItem={({ item }) => {
+        const water = needsWater(item);
+        const fertilizer = needsFertilizer(item);
+
+        return (
+          <TouchableOpacity
+            style={styles.card}
+            onPress={() => router.push(`/plant/${item.id}`)}
+          >
+            {item.photoUri ? (
+              <Image source={{ uri: item.photoUri }} style={styles.cardPhoto} />
+            ) : (
+              <View style={styles.cardPhotoPlaceholder}>
+                <Text style={styles.cardPhotoPlaceholderText}>🌿</Text>
+              </View>
+            )}
+            <View style={styles.cardInfo}>
+              <Text style={styles.cardName}>{item.name}</Text>
+              {item.species ? (
+                <Text style={styles.cardSpecies}>{item.species}</Text>
+              ) : null}
+              {item.location ? (
+                <Text style={styles.cardLocation}>{item.location}</Text>
+              ) : null}
+              {(water || fertilizer) && (
+                <View style={styles.badgeRow}>
+                  {water && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>💧 Needs Water</Text>
+                    </View>
+                  )}
+                  {fertilizer && (
+                    <View style={styles.badge}>
+                      <Text style={styles.badgeText}>🌿 Needs Fertilizer</Text>
+                    </View>
+                  )}
+                </View>
+              )}
+            </View>
+          </TouchableOpacity>
+        );
+      }}
     />
   );
 }
@@ -96,6 +137,25 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: Colors.textSecondary,
     textAlign: 'center',
+  },
+  tasksSummary: {
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: Colors.primary,
+  },
+  tasksSummaryTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: Colors.text,
+    marginBottom: 8,
+  },
+  tasksSummaryItem: {
+    fontSize: 15,
+    color: Colors.text,
+    marginTop: 4,
   },
   card: {
     flexDirection: 'row',
@@ -144,5 +204,22 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: Colors.textSecondary,
     marginTop: 2,
+  },
+  badgeRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    marginTop: 6,
+    gap: 6,
+  },
+  badge: {
+    backgroundColor: '#FFF3E0',
+    borderRadius: 6,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+  },
+  badgeText: {
+    fontSize: 12,
+    color: '#E65100',
+    fontWeight: '600',
   },
 });

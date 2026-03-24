@@ -6,11 +6,13 @@ import {
   Image,
   ScrollView,
   ActivityIndicator,
+  TouchableOpacity,
 } from 'react-native';
 import { useLocalSearchParams, Stack } from 'expo-router';
 import { Colors } from '../../constants/colors';
-import { getPlantById } from '../../storage/plants';
+import { getPlantById, updatePlant } from '../../storage/plants';
 import { Plant } from '../../types/plant';
+import { daysUntilNext } from '../../utils/schedule';
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -26,6 +28,20 @@ export default function PlantDetailScreen() {
     }
   }, [id]);
 
+  async function handleWaterNow() {
+    if (!plant) return;
+    const updated = { ...plant, lastWatered: new Date().toISOString() };
+    await updatePlant(updated);
+    setPlant(updated);
+  }
+
+  async function handleFertilizeNow() {
+    if (!plant) return;
+    const updated = { ...plant, lastFertilized: new Date().toISOString() };
+    await updatePlant(updated);
+    setPlant(updated);
+  }
+
   if (loading) {
     return (
       <View style={styles.centered}>
@@ -40,6 +56,16 @@ export default function PlantDetailScreen() {
         <Text style={styles.errorText}>Plant not found.</Text>
       </View>
     );
+  }
+
+  const waterDays = daysUntilNext(plant.lastWatered, plant.wateringFrequencyDays);
+  const fertDays = daysUntilNext(plant.lastFertilized, plant.fertilizingFrequencyDays);
+
+  function formatCountdown(days: number | null): string {
+    if (days === null) return 'Not set';
+    if (days <= 0) return 'Now!';
+    if (days === 1) return 'Tomorrow';
+    return `In ${days} days`;
   }
 
   return (
@@ -76,6 +102,56 @@ export default function PlantDetailScreen() {
             {new Date(plant.createdAt).toLocaleDateString()}
           </Text>
         </View>
+
+        {plant.wateringFrequencyDays != null && (
+          <View style={styles.scheduleCard}>
+            <View style={styles.scheduleHeader}>
+              <Text style={styles.scheduleIcon}>💧</Text>
+              <View style={styles.scheduleInfo}>
+                <Text style={styles.scheduleTitle}>Next Watering</Text>
+                <Text
+                  style={[
+                    styles.scheduleCountdown,
+                    waterDays !== null && waterDays <= 0 && styles.overdue,
+                  ]}
+                >
+                  {formatCountdown(waterDays)}
+                </Text>
+                <Text style={styles.scheduleFrequency}>
+                  Every {plant.wateringFrequencyDays} days
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.actionButton} onPress={handleWaterNow}>
+              <Text style={styles.actionButtonText}>💧 Water Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
+        {plant.fertilizingFrequencyDays != null && (
+          <View style={styles.scheduleCard}>
+            <View style={styles.scheduleHeader}>
+              <Text style={styles.scheduleIcon}>🌿</Text>
+              <View style={styles.scheduleInfo}>
+                <Text style={styles.scheduleTitle}>Next Fertilizing</Text>
+                <Text
+                  style={[
+                    styles.scheduleCountdown,
+                    fertDays !== null && fertDays <= 0 && styles.overdue,
+                  ]}
+                >
+                  {formatCountdown(fertDays)}
+                </Text>
+                <Text style={styles.scheduleFrequency}>
+                  Every {plant.fertilizingFrequencyDays} days
+                </Text>
+              </View>
+            </View>
+            <TouchableOpacity style={styles.actionButton} onPress={handleFertilizeNow}>
+              <Text style={styles.actionButtonText}>🌿 Fertilize Now</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
     </>
   );
@@ -141,6 +217,55 @@ const styles = StyleSheet.create({
   infoValue: {
     fontSize: 15,
     color: Colors.text,
+    fontWeight: '600',
+  },
+  scheduleCard: {
+    width: '100%',
+    backgroundColor: Colors.card,
+    borderRadius: 12,
+    padding: 16,
+    marginTop: 10,
+  },
+  scheduleHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  scheduleIcon: {
+    fontSize: 32,
+    marginRight: 14,
+  },
+  scheduleInfo: {
+    flex: 1,
+  },
+  scheduleTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: Colors.text,
+  },
+  scheduleCountdown: {
+    fontSize: 20,
+    fontWeight: 'bold',
+    color: Colors.primary,
+    marginTop: 2,
+  },
+  overdue: {
+    color: '#E65100',
+  },
+  scheduleFrequency: {
+    fontSize: 13,
+    color: Colors.textSecondary,
+    marginTop: 2,
+  },
+  actionButton: {
+    backgroundColor: Colors.primaryLight,
+    borderRadius: 8,
+    padding: 12,
+    alignItems: 'center',
+  },
+  actionButtonText: {
+    color: Colors.white,
+    fontSize: 16,
     fontWeight: '600',
   },
 });
