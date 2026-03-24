@@ -13,6 +13,7 @@ import { Colors } from '../../constants/colors';
 import { getPlantById, updatePlant } from '../../storage/plants';
 import { Plant } from '../../types/plant';
 import { daysUntilNext } from '../../utils/schedule';
+import { scheduleAllNotifications } from '../../utils/notifications';
 
 export default function PlantDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
@@ -33,6 +34,7 @@ export default function PlantDetailScreen() {
     const updated = { ...plant, lastWatered: new Date().toISOString() };
     await updatePlant(updated);
     setPlant(updated);
+    await scheduleAllNotifications();
   }
 
   async function handleFertilizeNow() {
@@ -40,6 +42,7 @@ export default function PlantDetailScreen() {
     const updated = { ...plant, lastFertilized: new Date().toISOString() };
     await updatePlant(updated);
     setPlant(updated);
+    await scheduleAllNotifications();
   }
 
   if (loading) {

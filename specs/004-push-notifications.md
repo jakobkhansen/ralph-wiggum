@@ -1,5 +1,7 @@
 # Spec 004: Push Notifications
 
+## Status: COMPLETE
+
 ## Summary
 
 Send local push notifications to remind users when plants need watering or fertilizing.
@@ -19,10 +21,12 @@ Users won't open the app every day. Notifications are what make this app actuall
 
 ## Acceptance Criteria
 
-- [ ] App requests notification permissions on first launch
-- [ ] Notifications fire at the correct time for plants needing water
-- [ ] Notifications fire at the correct time for plants needing fertilizer
-- [ ] Tapping a notification navigates to the correct plant detail screen
-- [ ] Settings screen allows toggling notifications on/off
-- [ ] Settings screen allows setting preferred reminder time
-- [ ] Notifications are rescheduled when "Water Now" or "Fertilize Now" is tapped
+- [x] App requests notification permissions on first launch
+- [x] Notifications fire at the correct time for plants needing water
+- [x] Notifications fire at the correct time for plants needing fertilizer
+- [x] Tapping a notification navigates to the correct plant detail screen
+- [x] Settings screen allows toggling notifications on/off
+- [x] Settings screen allows setting preferred reminder time
+- [x] Notifications are rescheduled when "Water Now" or "Fertilize Now" is tapped
+
+<!-- NR_OF_TRIES: 1 -->

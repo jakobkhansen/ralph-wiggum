@@ -1,7 +1,29 @@
-import { Stack } from 'expo-router';
+import { useEffect } from 'react';
+import { Stack, useRouter } from 'expo-router';
+import * as Notifications from 'expo-notifications';
 import { Colors } from '../constants/colors';
+import { requestPermissions, scheduleAllNotifications } from '../utils/notifications';
 
 export default function RootLayout() {
+  const router = useRouter();
+
+  useEffect(() => {
+    requestPermissions().then(() => {
+      scheduleAllNotifications();
+    });
+
+    const subscription = Notifications.addNotificationResponseReceivedListener(
+      (response) => {
+        const plantId = response.notification.request.content.data?.plantId;
+        if (plantId) {
+          router.push(`/plant/${plantId}`);
+        }
+      }
+    );
+
+    return () => subscription.remove();
+  }, []);
+
   return (
     <Stack
       screenOptions={{

@@ -16,6 +16,7 @@ import { useRouter } from 'expo-router';
 import { Colors } from '../../constants/colors';
 import { savePlant } from '../../storage/plants';
 import { Plant } from '../../types/plant';
+import { scheduleAllNotifications } from '../../utils/notifications';
 
 export default function AddPlantScreen() {
   const router = useRouter();
@@ -63,6 +64,7 @@ export default function AddPlantScreen() {
     };
 
     await savePlant(plant);
+    await scheduleAllNotifications();
     setName('');
     setSpecies('');
     setLocation('');
